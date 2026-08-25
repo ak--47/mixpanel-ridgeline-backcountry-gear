@@ -1,3 +1,15 @@
+import alpineHaulerBack from '@assets/generated_images/ridgeline/alpine-hauler-back.jpg';
+import alpineHaulerFront from '@assets/generated_images/ridgeline/alpine-hauler-front.jpg';
+import apex104Front from '@assets/generated_images/ridgeline/apex-104-front.jpg';
+import apex104Profile from '@assets/generated_images/ridgeline/apex-104-profile.jpg';
+import beaconProX from '@assets/generated_images/ridgeline/beacon-pro-x-v2.jpg';
+import carbonProbe280 from '@assets/generated_images/ridgeline/carbon-probe-280.jpg';
+import carbonTourPoles from '@assets/generated_images/ridgeline/carbon-tour-poles.jpg';
+import drifterSplitBase from '@assets/generated_images/ridgeline/drifter-split-base.jpg';
+import drifterSplitTop from '@assets/generated_images/ridgeline/drifter-split-top.jpg';
+import stormshieldBack from '@assets/generated_images/ridgeline/stormshield-back.jpg';
+import stormshieldFront from '@assets/generated_images/ridgeline/stormshield-front.jpg';
+
 export type ProductCategory = 'skis' | 'splitboards' | 'safety' | 'packs' | 'apparel' | 'helmets' | 'poles';
 
 export interface ProductVariant {
@@ -40,7 +52,7 @@ export const PRODUCTS: Product[] = [
     description: "Our flagship backcountry ski, completely redesigned for this season. The Apex 104 strikes the elusive balance between uphill efficiency and downhill power. Utilizing a carbon-flax weave and a Paulownia core, it dampens chatter in variable conditions while remaining light enough for 5,000ft days.",
     price: 849.00,
     category: "skis",
-    images: ["https://placehold.co/800x1000/2A2E33/FFFFFF?text=Apex+104", "https://placehold.co/800x1000/F1F3F5/2A2E33?text=Apex+Profile"],
+    images: [apex104Front, apex104Profile],
     isBestseller: true,
     variants: [
       { id: "v1", size: "172", inStock: true, stockCount: 5 },
@@ -62,7 +74,7 @@ export const PRODUCTS: Product[] = [
     description: "A directional freeride splitboard built for deep days and steep lines. The Drifter features our early rise nose and tapered tail to naturally float in powder, while the camber underfoot ensures solid edge hold on icy skin tracks.",
     price: 899.00,
     category: "splitboards",
-    images: ["https://placehold.co/800x1000/2A2E33/FFFFFF?text=Drifter+Split", "https://placehold.co/800x1000/F1F3F5/2A2E33?text=Drifter+Base"],
+    images: [drifterSplitTop, drifterSplitBase],
     isNew: true,
     variants: [
       { id: "v1", size: "154", inStock: true, stockCount: 2 },
@@ -84,7 +96,7 @@ export const PRODUCTS: Product[] = [
     description: "The most intuitive and fastest avalanche transceiver we've ever carried. With a 70m circular search strip, interference management, and an easy-to-read display, the Pro X is built for moments when seconds matter.",
     price: 399.00,
     category: "safety",
-    images: ["https://placehold.co/800x1000/E85D04/FFFFFF?text=Beacon+Pro+X"],
+    images: [beaconProX],
     variants: [
       { id: "v1", size: "One Size", inStock: true, stockCount: 24 },
     ],
@@ -101,7 +113,7 @@ export const PRODUCTS: Product[] = [
     description: "A stripped-down, highly weather-resistant pack designed for multi-day hut trips and technical ski mountaineering. Features dedicated avy tool pocket, back-panel access, and a diagonal or A-frame ski carry.",
     price: 249.00,
     category: "packs",
-    images: ["https://placehold.co/800x1000/2A2E33/FFFFFF?text=Alpine+Hauler+40", "https://placehold.co/800x1000/F1F3F5/2A2E33?text=Pack+Details"],
+    images: [alpineHaulerFront, alpineHaulerBack],
     isBestseller: true,
     variants: [
       { id: "v1", size: "S/M", color: "Slate", inStock: true, stockCount: 15 },
@@ -121,7 +133,7 @@ export const PRODUCTS: Product[] = [
     description: "A 3-layer hardshell designed specifically for the skin track. Highly breathable electrospun membrane meets rugged face fabric. Features chest pockets that are accessible while wearing a pack and harness.",
     price: 499.00,
     category: "apparel",
-    images: ["https://placehold.co/800x1000/2A2E33/FFFFFF?text=Stormshield+Pro", "https://placehold.co/800x1000/F1F3F5/2A2E33?text=Jacket+Back"],
+    images: [stormshieldFront, stormshieldBack],
     isNew: true,
     variants: [
       { id: "v1", size: "S", color: "Alpine Blue", inStock: true, stockCount: 4 },
@@ -142,7 +154,7 @@ export const PRODUCTS: Product[] = [
     description: "Lightweight, dependable, and simple. These two-piece adjustable poles feature a carbon lower shaft and aluminum upper for the perfect blend of swing weight and durability. The extended EVA grip is ideal for sidehilling.",
     price: 149.00,
     category: "poles",
-    images: ["https://placehold.co/800x1000/2A2E33/FFFFFF?text=Tour+Poles"],
+    images: [carbonTourPoles],
     variants: [
       { id: "v1", size: "105-145cm", inStock: true, stockCount: 30 },
     ],
@@ -159,7 +171,7 @@ export const PRODUCTS: Product[] = [
     description: "Fast deployment and rigid probing. The 280cm length is ideal for deeper snowpacks, while the carbon construction keeps weight minimal in your pack.",
     price: 89.00,
     category: "safety",
-    images: ["https://placehold.co/800x1000/2A2E33/FFFFFF?text=Carbon+Probe"],
+    images: [carbonProbe280],
     variants: [
       { id: "v1", size: "280cm", inStock: true, stockCount: 18 },
     ],
