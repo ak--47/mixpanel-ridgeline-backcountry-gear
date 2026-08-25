@@ -7,6 +7,9 @@ import carbonProbe280 from '@assets/generated_images/ridgeline/carbon-probe-280.
 import carbonTourPoles from '@assets/generated_images/ridgeline/carbon-tour-poles.jpg';
 import drifterSplitBase from '@assets/generated_images/ridgeline/drifter-split-base.jpg';
 import drifterSplitTop from '@assets/generated_images/ridgeline/drifter-split-top.jpg';
+import journalApexTesting from '@assets/generated_images/ridgeline/journal-apex-104-testing.jpg';
+import journalLayering from '@assets/generated_images/ridgeline/journal-layering-systems.jpg';
+import journalRogersPass from '@assets/generated_images/ridgeline/journal-rogers-pass.jpg';
 import stormshieldBack from '@assets/generated_images/ridgeline/stormshield-back.jpg';
 import stormshieldFront from '@assets/generated_images/ridgeline/stormshield-front.jpg';
 
@@ -193,7 +196,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     date: "2023-11-12",
     author: "Sarah K.",
     category: "guide",
-    image: "https://placehold.co/1200x600/2A2E33/FFFFFF?text=Layering",
+    image: journalLayering,
     readTime: 6
   },
   {
@@ -204,7 +207,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     date: "2023-12-04",
     author: "Marcus T.",
     category: "story",
-    image: "https://placehold.co/1200x600/2A2E33/FFFFFF?text=Rogers+Pass",
+    image: journalRogersPass,
     readTime: 8
   },
   {
@@ -215,7 +218,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     date: "2024-01-15",
     author: "Tech Team",
     category: "review",
-    image: "https://placehold.co/1200x600/2A2E33/FFFFFF?text=Apex+Testing",
+    image: journalApexTesting,
     readTime: 5
   }
 ];
