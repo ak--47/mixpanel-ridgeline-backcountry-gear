@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Ridgeline Supply"
+description = "A premium ecommerce storefront for backcountry skiing and snowboarding gear, featuring realistic product collections, discovery filters, product details, favorites, and a persistent shopping cart."
+version = "1.0.0"
+id = "artifacts/ridgeline-supply"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21963
+
+[services.development]
+run = "pnpm --filter @workspace/ridgeline-supply run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ridgeline-supply", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ridgeline-supply/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21963"
+BASE_PATH = "/"
