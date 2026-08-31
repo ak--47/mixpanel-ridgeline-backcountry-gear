@@ -1,0 +1,1 @@
+- [GitHub push auth](github-push-auth.md) — push via ephemeral /tmp credential helper fetching token from Replit GitHub connection; never persist creds.
