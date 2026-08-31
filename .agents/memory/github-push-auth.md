@@ -8,3 +8,5 @@ Standard `git push` to GitHub fails auth here. Working pattern: use the Replit G
 **Why:** No credentials are persisted in tracked files or .git/config; token is fetched fresh each push.
 
 **How to apply:** Any time git needs to fetch/push against the GitHub `origin` remote (https://github.com/ak--47/mixpanel-ridgeline-backcountry-gear.git).
+
+Note: task merges can wipe `.git/config` remotes — if `origin` is missing, re-add it with the URL above before fetching. If local main has only a patch-equivalent extra commit (check `git cherry origin/main main` for `-`), rebasing onto origin/main drops it safely and is equivalent to a fast-forward.
