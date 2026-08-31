@@ -1,10 +1,27 @@
 import React from 'react';
 import { JOURNAL_ENTRIES } from '@/lib/data';
+import { track } from '@/lib/analytics';
 import { ArrowUpRight, Clock, Calendar } from 'lucide-react';
 
 export default function Journal() {
   const heroEntry = JOURNAL_ENTRIES[0];
   const remainingEntries = JOURNAL_ENTRIES.slice(1);
+
+  const trackEntry = (
+    entry: (typeof JOURNAL_ENTRIES)[number],
+    position: number,
+    placement: 'hero' | 'grid',
+  ) =>
+    track('journal_entry_clicked', {
+      entry_id: entry.id,
+      entry_title: entry.title,
+      category: entry.category,
+      author: entry.author,
+      read_time: entry.readTime,
+      position,
+      placement,
+      source: 'journal',
+    });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -36,7 +53,12 @@ export default function Journal() {
         </header>
 
         {/* Hero Article */}
-        <article className="mb-24 group cursor-pointer">
+        <article
+          className="mb-24 group cursor-pointer"
+          onClick={() => trackEntry(heroEntry, 1, 'hero')}
+          data-analytics-event="journal_entry_clicked"
+          data-analytics-entry-id={heroEntry.id}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="relative aspect-[4/3] overflow-hidden rounded-sm bg-muted order-2 lg:order-1">
               <img 
@@ -71,8 +93,14 @@ export default function Journal() {
 
         {/* Grid Articles */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
-          {remainingEntries.map(entry => (
-            <article key={entry.id} className="group cursor-pointer flex flex-col">
+          {remainingEntries.map((entry, i) => (
+            <article
+              key={entry.id}
+              className="group cursor-pointer flex flex-col"
+              onClick={() => trackEntry(entry, i + 2, 'grid')}
+              data-analytics-event="journal_entry_clicked"
+              data-analytics-entry-id={entry.id}
+            >
               <div className="relative aspect-[16/9] overflow-hidden rounded-sm bg-muted mb-6">
                 <img 
                   src={entry.image} 

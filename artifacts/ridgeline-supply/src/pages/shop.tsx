@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { PRODUCTS, ProductCategory } from '@/lib/data';
+import { track } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { SlidersHorizontal, ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -69,7 +70,17 @@ export default function Shop() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="font-mono text-xs uppercase">
-                <DropdownMenuRadioGroup value={sortOrder} onValueChange={setSortOrder}>
+                <DropdownMenuRadioGroup
+                  value={sortOrder}
+                  onValueChange={(value) => {
+                    track('shop_sort_changed', {
+                      previous_sort: sortOrder,
+                      new_sort: value,
+                      category: activeCategory,
+                    });
+                    setSortOrder(value);
+                  }}
+                >
                   <DropdownMenuRadioItem value="featured">Featured</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="price-asc">Price: Low to High</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="price-desc">Price: High to Low</DropdownMenuRadioItem>
@@ -93,8 +104,18 @@ export default function Shop() {
                   <ul className="space-y-2">
                     {CATEGORIES.map(cat => (
                       <li key={cat.id}>
-                        <button 
-                          onClick={() => setActiveCategory(cat.id)}
+                        <button
+                          onClick={() => {
+                            track('shop_filter_changed', {
+                              filter_type: 'category',
+                              previous_value: activeCategory,
+                              new_value: cat.id,
+                              filter_label: cat.label,
+                            });
+                            setActiveCategory(cat.id);
+                          }}
+                          data-analytics-event="shop_filter_changed"
+                          data-analytics-filter-value={cat.id}
                           className={cn(
                             "text-sm w-full text-left flex items-center justify-between py-1 transition-colors",
                             activeCategory === cat.id ? "font-bold text-primary" : "text-foreground hover:text-primary"
@@ -116,12 +137,46 @@ export default function Shop() {
             {filteredProducts.length === 0 ? (
               <div className="py-20 text-center border-2 border-dashed border-border rounded-lg">
                 <p className="text-lg font-display uppercase tracking-widest text-muted-foreground">No products found in this category.</p>
-                <Button variant="link" onClick={() => setActiveCategory('all')} className="mt-4 font-mono text-xs">Reset Filters</Button>
+                <Button
+                  variant="link"
+                  onClick={() => {
+                    track('shop_filter_changed', {
+                      filter_type: 'category',
+                      previous_value: activeCategory,
+                      new_value: 'all',
+                      filter_label: 'Reset Filters',
+                    });
+                    setActiveCategory('all');
+                  }}
+                  data-analytics-event="shop_filter_changed"
+                  className="mt-4 font-mono text-xs"
+                >
+                  Reset Filters
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-                {filteredProducts.map((product) => (
-                  <Link key={product.id} href={`/product/${product.id}`} className="group cursor-pointer flex flex-col">
+                {filteredProducts.map((product, i) => (
+                  <Link
+                    key={product.id}
+                    href={`/product/${product.id}`}
+                    onClick={() =>
+                      track('product_card_clicked', {
+                        product_id: product.id,
+                        product_name: product.name,
+                        category: product.category,
+                        price: product.price,
+                        position: i + 1,
+                        source: 'plp',
+                        active_category: activeCategory,
+                        sort_order: sortOrder,
+                      })
+                    }
+                    data-analytics-event="product_card_clicked"
+                    data-analytics-product-id={product.id}
+                    data-analytics-price={product.price}
+                    className="group cursor-pointer flex flex-col"
+                  >
                     <div className="relative aspect-[3/4] bg-muted mb-4 overflow-hidden rounded-sm">
                       {product.isNew && (
                         <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">New</span>

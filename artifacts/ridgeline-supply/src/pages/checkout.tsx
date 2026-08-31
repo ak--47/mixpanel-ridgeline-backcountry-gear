@@ -5,21 +5,44 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { track } from '@/lib/analytics';
 
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart();
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   const shipping = subtotal > 150 ? 0 : 15;
   const tax = subtotal * 0.08; // Fake 8% tax
   const total = subtotal + shipping + tax;
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // capture the cart before clearCart() empties it
+    const orderId = `RS-${Date.now().toString(36).toUpperCase()}`;
+    const orderProps = {
+      order_id: orderId,
+      revenue: total,
+      subtotal,
+      shipping,
+      tax,
+      item_count: itemCount,
+      line_item_count: items.length,
+      product_ids: items.map((item) => item.product.id),
+    };
+
+    track('place_order_clicked', {
+      cart_value: subtotal,
+      item_count: itemCount,
+      order_total: total,
+    });
+
     // Simulate API call
     setTimeout(() => {
       clearCart();
       setIsSuccess(true);
+      track('purchase_completed', orderProps);
     }, 800);
   };
 
@@ -35,7 +58,12 @@ export default function Checkout() {
             Your gear is being prepped for dispatch. We've sent a confirmation email with tracking details.
           </p>
           <div className="pt-6">
-            <Button asChild size="lg" className="font-display uppercase tracking-widest">
+            <Button
+              asChild
+              size="lg"
+              onClick={() => track('continue_shopping_clicked', { source: 'order_confirmation' })}
+              className="font-display uppercase tracking-widest"
+            >
               <Link href="/shop">Return to Shop</Link>
             </Button>
           </div>
@@ -50,7 +78,10 @@ export default function Checkout() {
         <div className="text-center space-y-6">
           <h1 className="text-3xl font-display font-bold uppercase tracking-tight">Your Cart is Empty</h1>
           <p className="text-muted-foreground">You need gear before you can check out.</p>
-          <Button asChild>
+          <Button
+            asChild
+            onClick={() => track('continue_shopping_clicked', { source: 'empty_checkout' })}
+          >
             <Link href="/shop">Shop Equipment</Link>
           </Button>
         </div>
@@ -62,7 +93,12 @@ export default function Checkout() {
     <div className="min-h-screen bg-background pt-24 pb-24">
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
         
-        <Link href="/shop" className="inline-flex items-center text-sm font-mono uppercase tracking-widest hover:text-primary transition-colors mb-8">
+        <Link
+          href="/shop"
+          onClick={() => track('continue_shopping_clicked', { source: 'checkout_back_link' })}
+          data-analytics-event="continue_shopping_clicked"
+          className="inline-flex items-center text-sm font-mono uppercase tracking-widest hover:text-primary transition-colors mb-8"
+        >
           <ChevronLeft className="w-4 h-4 mr-2" /> Back to Shop
         </Link>
         
@@ -126,7 +162,13 @@ export default function Checkout() {
                 </div>
               </section>
 
-              <Button type="submit" size="lg" className="w-full h-14 text-lg font-display uppercase tracking-widest">
+              <Button
+                type="submit"
+                size="lg"
+                data-analytics-event="place_order_clicked"
+                data-analytics-order-total={total}
+                className="w-full h-14 text-lg font-display uppercase tracking-widest"
+              >
                 Place Order — ${total.toFixed(2)}
               </Button>
             </form>

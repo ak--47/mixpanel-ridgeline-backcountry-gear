@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRoute, Link } from 'wouter';
 import { PRODUCTS, ProductVariant } from '@/lib/data';
+import { track } from '@/lib/analytics';
 import { useCart } from '@/hooks/use-cart';
 import { useFavorites } from '@/hooks/use-favorites';
 import { useCartDrawer } from '@/components/cart/CartDrawerContext';
@@ -51,6 +52,18 @@ export default function ProductDetail() {
     return availableVariants.find(v => v.id === selectedVariantId);
   }, [availableVariants, selectedVariantId]);
 
+  useEffect(() => {
+    if (!product) return;
+    track('product_viewed', {
+      product_id: product.id,
+      product_name: product.name,
+      category: product.category,
+      price: product.price,
+      is_new: Boolean(product.isNew),
+      is_bestseller: Boolean(product.isBestseller),
+    });
+  }, [product]);
+
   if (!product) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center pt-24 text-center">
@@ -65,9 +78,21 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
-    
+
     addItem(product, selectedVariant, quantity);
-    
+
+    track('add_to_cart', {
+      product_id: product.id,
+      product_name: product.name,
+      category: product.category,
+      price: product.price,
+      quantity,
+      variant_id: selectedVariant.id,
+      size: selectedVariant.size ?? 'One Size',
+      color: selectedVariant.color,
+      source: 'pdp',
+    });
+
     toast({
       title: "Added to Cart",
       description: `${quantity}x ${product.name} (${selectedVariant.size || 'One Size'})`,
@@ -103,8 +128,20 @@ export default function ProductDetail() {
                 className="w-full h-full object-cover animate-in fade-in duration-500"
                 key={selectedImage} // forces re-render for animation
               />
-              <button 
-                onClick={() => toggleFavorite(product.id)}
+              <button
+                onClick={() => {
+                  track('favorite_toggled', {
+                    product_id: product.id,
+                    product_name: product.name,
+                    category: product.category,
+                    price: product.price,
+                    action: isFavorite(product.id) ? 'remove' : 'add',
+                    source: 'pdp',
+                  });
+                  toggleFavorite(product.id);
+                }}
+                data-analytics-event="favorite_toggled"
+                data-analytics-product-id={product.id}
                 className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-foreground hover:text-primary transition-colors"
               >
                 <Heart className={cn("w-5 h-5 transition-colors", isFavorite(product.id) && "fill-primary text-primary")} />
@@ -155,7 +192,17 @@ export default function ProductDetail() {
                     {colors.map(color => (
                       <button
                         key={color}
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => {
+                          track('variant_selected', {
+                            product_id: product.id,
+                            product_name: product.name,
+                            option: 'color',
+                            value: color,
+                          });
+                          setSelectedColor(color);
+                        }}
+                        data-analytics-event="variant_selected"
+                        data-analytics-option="color"
                         className={cn(
                           "px-4 py-2 text-sm font-display uppercase tracking-wide border rounded-sm transition-all",
                           selectedColor === color ? "border-foreground bg-foreground text-white" : "border-border hover:border-foreground/50 text-foreground"
@@ -184,7 +231,18 @@ export default function ProductDetail() {
                       <button
                         key={variant.id}
                         disabled={isDisabled}
-                        onClick={() => setSelectedVariantId(variant.id)}
+                        onClick={() => {
+                          track('variant_selected', {
+                            product_id: product.id,
+                            product_name: product.name,
+                            option: 'size',
+                            value: variant.size ?? 'One Size',
+                            variant_id: variant.id,
+                          });
+                          setSelectedVariantId(variant.id);
+                        }}
+                        data-analytics-event="variant_selected"
+                        data-analytics-option="size"
                         className={cn(
                           "py-3 text-sm font-display uppercase tracking-wide border rounded-sm transition-all relative overflow-hidden",
                           isSelected ? "border-primary bg-primary text-white" : "border-border text-foreground hover:border-foreground",
@@ -215,7 +273,18 @@ export default function ProductDetail() {
                   <div className="flex items-center border rounded-md bg-white">
                     <button 
                       className="p-3 hover:text-primary transition-colors disabled:opacity-50"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() => {
+                        track('pdp_quantity_changed', {
+                          product_id: product.id,
+                          product_name: product.name,
+                          direction: 'decrement',
+                          previous_quantity: quantity,
+                          new_quantity: Math.max(1, quantity - 1),
+                        });
+                        setQuantity(Math.max(1, quantity - 1));
+                      }}
+                      data-analytics-event="pdp_quantity_changed"
+                      data-analytics-direction="decrement"
                       disabled={quantity <= 1}
                     >
                       <Minus className="w-4 h-4" />
@@ -223,7 +292,18 @@ export default function ProductDetail() {
                     <span className="w-12 text-center font-mono">{quantity}</span>
                     <button 
                       className="p-3 hover:text-primary transition-colors disabled:opacity-50"
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => {
+                        track('pdp_quantity_changed', {
+                          product_id: product.id,
+                          product_name: product.name,
+                          direction: 'increment',
+                          previous_quantity: quantity,
+                          new_quantity: quantity + 1,
+                        });
+                        setQuantity(quantity + 1);
+                      }}
+                      data-analytics-event="pdp_quantity_changed"
+                      data-analytics-direction="increment"
                       disabled={selectedVariant ? quantity >= selectedVariant.stockCount : false}
                     >
                       <Plus className="w-4 h-4" />
@@ -240,6 +320,9 @@ export default function ProductDetail() {
               <Button 
                 size="lg" 
                 className="w-full h-14 text-lg font-display uppercase tracking-widest"
+                data-analytics-event="add_to_cart"
+                data-analytics-product-id={product.id}
+                data-analytics-price={product.price}
                 onClick={handleAddToCart}
                 disabled={!selectedVariant || !selectedVariant.inStock}
               >

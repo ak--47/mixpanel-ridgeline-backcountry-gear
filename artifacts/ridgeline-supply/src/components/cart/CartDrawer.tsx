@@ -4,6 +4,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/comp
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'wouter';
+import { track } from '@/lib/analytics';
+import type { CartItem } from '@/hooks/use-cart';
 
 export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
@@ -14,8 +16,41 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   const amountToFreeShipping = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
 
   const handleCheckout = () => {
+    track('checkout_started', {
+      cart_value: subtotal,
+      item_count: totalItems,
+      line_item_count: items.length,
+    });
     onClose();
     setLocation('/checkout');
+  };
+
+  const handleRemove = (item: CartItem) => {
+    track('remove_from_cart', {
+      product_id: item.product.id,
+      product_name: item.product.name,
+      category: item.product.category,
+      price: item.product.price,
+      quantity_removed: item.quantity,
+      variant_id: item.variant.id,
+    });
+    removeItem(item.product.id, item.variant.id);
+  };
+
+  const handleQuantityChange = (item: CartItem, newQuantity: number) => {
+    // use-cart ignores quantities below 1 — don't report a change that
+    // never happens. Removal is the X button.
+    if (newQuantity < 1) return;
+    track('cart_quantity_changed', {
+      product_id: item.product.id,
+      product_name: item.product.name,
+      price: item.product.price,
+      previous_quantity: item.quantity,
+      new_quantity: newQuantity,
+      direction: newQuantity > item.quantity ? 'increment' : 'decrement',
+      variant_id: item.variant.id,
+    });
+    updateQuantity(item.product.id, item.variant.id, newQuantity);
   };
 
   return (
@@ -41,7 +76,14 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 <p className="font-medium text-foreground text-lg">Your cart is empty.</p>
                 <p className="text-sm mt-1">Time to gear up for the mountains.</p>
               </div>
-              <Button onClick={onClose} className="mt-4" asChild>
+              <Button
+                onClick={() => {
+                  track('continue_shopping_clicked', { source: 'cart_drawer' });
+                  onClose();
+                }}
+                className="mt-4"
+                asChild
+              >
                 <Link href="/shop">Continue Shopping</Link>
               </Button>
             </div>
@@ -71,7 +113,12 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                       <div>
                         <div className="flex justify-between items-start">
                           <h4 className="font-medium font-display leading-tight">{item.product.name}</h4>
-                          <button onClick={() => removeItem(item.product.id, item.variant.id)} className="text-muted-foreground hover:text-destructive">
+                          <button
+                            onClick={() => handleRemove(item)}
+                            data-analytics-event="remove_from_cart"
+                            data-analytics-product-id={item.product.id}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
                             <X className="w-4 h-4" />
                           </button>
                         </div>
@@ -85,14 +132,18 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                         <div className="flex items-center border rounded-md">
                           <button 
                             className="p-1 hover:bg-muted"
-                            onClick={() => updateQuantity(item.product.id, item.variant.id, item.quantity - 1)}
+                            onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                            data-analytics-event="cart_quantity_changed"
+                            data-analytics-direction="decrement"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="w-8 text-center text-sm font-mono">{item.quantity}</span>
                           <button 
                             className="p-1 hover:bg-muted"
-                            onClick={() => updateQuantity(item.product.id, item.variant.id, item.quantity + 1)}
+                            onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                            data-analytics-event="cart_quantity_changed"
+                            data-analytics-direction="increment"
                             disabled={item.quantity >= item.variant.stockCount}
                           >
                             <Plus className="w-4 h-4" />
@@ -115,7 +166,11 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <p className="text-xs text-muted-foreground text-center">Shipping and taxes calculated at checkout.</p>
-            <Button className="w-full text-lg h-12" onClick={handleCheckout}>
+            <Button
+              className="w-full text-lg h-12"
+              data-analytics-event="checkout_started"
+              onClick={handleCheckout}
+            >
               Checkout <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>

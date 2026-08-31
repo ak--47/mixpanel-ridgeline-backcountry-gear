@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { PRODUCTS, JOURNAL_ENTRIES } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { useCartDrawer } from '@/components/cart/CartDrawerContext';
+import { track } from '@/lib/analytics';
 
 export default function Home() {
   const featuredProducts = PRODUCTS.filter(p => p.isBestseller || p.isNew).slice(0, 4);
@@ -34,10 +35,21 @@ export default function Home() {
             Technical equipment and knowledge for the dedicated alpine traveler. Engineered for the ascent, built for the descent.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom-8 duration-700 delay-300">
-            <Button size="lg" className="h-14 px-8 text-lg font-display" asChild>
+            <Button
+              size="lg"
+              className="h-14 px-8 text-lg font-display"
+              onClick={() => track('hero_cta_clicked', { cta_text: 'Shop Equipment', destination: '/shop' })}
+              asChild
+            >
               <Link href="/shop">Shop Equipment</Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-display bg-white/10 text-white border-white/20 hover:bg-white hover:text-secondary" asChild>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-14 px-8 text-lg font-display bg-white/10 text-white border-white/20 hover:bg-white hover:text-secondary"
+              onClick={() => track('hero_cta_clicked', { cta_text: 'Read the Field Guide', destination: '/journal' })}
+              asChild
+            >
               <Link href="/journal">Read the Field Guide</Link>
             </Button>
           </div>
@@ -52,14 +64,37 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-display font-bold uppercase tracking-tight">Mission Critical</h2>
               <p className="text-muted-foreground mt-2 font-mono text-sm">TESTED IN THE TETONS. BUILT FOR EVERYWHERE.</p>
             </div>
-            <Link href="/shop" className="hidden md:flex items-center gap-2 font-display text-sm hover:text-primary transition-colors uppercase font-bold">
+            <Link
+              href="/shop"
+              onClick={() => track('section_cta_clicked', { section: 'featured_products', cta_text: 'View All' })}
+              data-analytics-event="section_cta_clicked"
+              data-analytics-section="featured_products"
+              className="hidden md:flex items-center gap-2 font-display text-sm hover:text-primary transition-colors uppercase font-bold"
+            >
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {featuredProducts.map((product) => (
-              <Link key={product.id} href={`/product/${product.id}`} className="group cursor-pointer">
+            {featuredProducts.map((product, i) => (
+              <Link
+                key={product.id}
+                href={`/product/${product.id}`}
+                onClick={() =>
+                  track('product_card_clicked', {
+                    product_id: product.id,
+                    product_name: product.name,
+                    category: product.category,
+                    price: product.price,
+                    position: i + 1,
+                    source: 'home',
+                  })
+                }
+                data-analytics-event="product_card_clicked"
+                data-analytics-product-id={product.id}
+                data-analytics-price={product.price}
+                className="group cursor-pointer"
+              >
                 <div className="relative aspect-[4/5] bg-muted mb-4 overflow-hidden rounded-sm">
                   {product.isNew && (
                     <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">New</span>
@@ -83,7 +118,12 @@ export default function Home() {
           </div>
           
           <div className="mt-8 text-center md:hidden">
-            <Button variant="outline" className="w-full" asChild>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => track('section_cta_clicked', { section: 'featured_products', cta_text: 'View All Equipment' })}
+              asChild
+            >
               <Link href="/shop">View All Equipment</Link>
             </Button>
           </div>
@@ -102,7 +142,20 @@ export default function Home() {
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 {featuredJournal.excerpt}
               </p>
-              <Button asChild variant="outline" className="h-12 px-6 font-display uppercase tracking-wider">
+              <Button
+                asChild
+                variant="outline"
+                onClick={() =>
+                  track('journal_entry_clicked', {
+                    entry_id: featuredJournal.id,
+                    entry_title: featuredJournal.title,
+                    category: featuredJournal.category,
+                    read_time: featuredJournal.readTime,
+                    source: 'home',
+                  })
+                }
+                className="h-12 px-6 font-display uppercase tracking-wider"
+              >
                 <Link href="/journal">Read Full Article <ArrowUpRight className="w-4 h-4 ml-2" /></Link>
               </Button>
             </div>

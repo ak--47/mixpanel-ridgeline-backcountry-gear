@@ -1,5 +1,6 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { initAnalytics } from '@/lib/analytics';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
@@ -43,6 +44,10 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function App() {
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
     <TooltipProvider>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>

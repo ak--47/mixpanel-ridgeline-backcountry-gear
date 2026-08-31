@@ -72,6 +72,11 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // Local-only: forward /api to the api-server. On Replit the path router
+    // handles this, so the proxy is disabled there.
+    ...(process.env.REPL_ID === undefined
+      ? { proxy: { '/api': 'http://localhost:8080' } }
+      : {}),
   },
   preview: {
     port,
