@@ -26,7 +26,18 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **The cart is a context, not a hook.** `src/hooks/use-cart.tsx` exports `CartProvider` +
+  `useCart()`, and `App.tsx` wraps the tree in it. It used to be a plain `useState` hook, so
+  Navbar, CartDrawer, ProductDetail and Checkout each held their own copy and only saw each
+  other's writes after a full page load — adding from a PDP left the drawer showing an empty
+  cart and made checkout unreachable. localStorage is the persistence layer, not the sync
+  layer. Do not turn it back into a bare hook.
+- **`initAnalytics()` runs in `main.tsx`, before the first render** — not from an effect in
+  `App`. React runs child effects before the parent's, so `ProductDetail`'s mount-time
+  `product_viewed` used to call `track()` before `mixpanel.init()` had installed the
+  snippet's method stubs. On a cold load of `/product/:id` that threw
+  `window.mixpanel?.track is not a function` and the ErrorBoundary replaced the page with
+  "Something went wrong". Do not move it back into `useEffect`.
 
 ## Product
 

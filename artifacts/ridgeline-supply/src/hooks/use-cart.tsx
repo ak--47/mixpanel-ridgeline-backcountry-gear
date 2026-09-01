@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Product, ProductVariant } from '@/lib/data';
 
 export interface CartItem {
@@ -7,7 +7,26 @@ export interface CartItem {
   quantity: number;
 }
 
-export function useCart() {
+interface CartContextType {
+  items: CartItem[];
+  addItem: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  removeItem: (productId: string, variantId: string) => void;
+  updateQuantity: (productId: string, variantId: string, quantity: number) => void;
+  clearCart: () => void;
+  subtotal: number;
+  totalItems: number;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+/**
+ * The cart lives in one place. Navbar, CartDrawer, ProductDetail and Checkout
+ * all read the same state — before this was a provider, each of them held its
+ * own useState copy and only ever saw the others' writes after a full page
+ * load, so adding from a PDP left the drawer and the badge showing an empty
+ * cart. localStorage is the persistence layer, not the sync layer.
+ */
+export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const stored = localStorage.getItem('ridgeline_cart');
@@ -25,7 +44,7 @@ export function useCart() {
     setItems(current => {
       const existing = current.find(item => item.product.id === product.id && item.variant.id === variant.id);
       if (existing) {
-        return current.map(item => 
+        return current.map(item =>
           item.product.id === product.id && item.variant.id === variant.id
             ? { ...item, quantity: item.quantity + quantity }
             : item
@@ -41,8 +60,8 @@ export function useCart() {
 
   const updateQuantity = (productId: string, variantId: string, quantity: number) => {
     if (quantity < 1) return;
-    setItems(current => 
-      current.map(item => 
+    setItems(current =>
+      current.map(item =>
         item.product.id === productId && item.variant.id === variantId
           ? { ...item, quantity }
           : item
@@ -55,5 +74,17 @@ export function useCart() {
   const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  return { items, addItem, removeItem, updateQuantity, clearCart, subtotal, totalItems };
+  return (
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, subtotal, totalItems }}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
 }
